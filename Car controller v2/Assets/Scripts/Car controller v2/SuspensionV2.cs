@@ -12,11 +12,10 @@ public class SuspensionV2 : MonoBehaviour
     [SerializeField] private Transform carAttachPoint;
     [Tooltip("The place where the suspension is attached to the wheel")]
     [SerializeField] private Transform wheelAttachPoint;
-    
     [Tooltip("The rigidbody attached to the chassis")]
     [SerializeField] private Rigidbody carRb;
     [Tooltip("The script of the wheel that the suspension is attached to")]
-    [SerializeField] private Tyre tyre;
+    [SerializeField] private TyresV2 tyre;
     
     [Header("Variables")]
     [Tooltip("The added ride height to the ")]
@@ -28,15 +27,23 @@ public class SuspensionV2 : MonoBehaviour
     [Tooltip("The amount that the dampers damps the spring")]
     [SerializeField] private float damper = 5000;
     [Tooltip("A curve where you can change the behaviour of the spring"), Curve(0f, 0f, 1f, 1f, true)]
-    [SerializeField] private AnimationCurve springCurve;
+    [SerializeField] private AnimationCurve progressionCurve;
+
+    private float clampedYAxis;
+    private Vector3 highestPoint;
+    private Vector3 lowestPoint;
     
     #endregion
     
     #region update
 
-    private void FixedUpdate()
+    private void Update()
     {
         ClampTravel();
+    }
+
+    private void FixedUpdate()
+    {
         Suspension();
     }
     
@@ -46,13 +53,30 @@ public class SuspensionV2 : MonoBehaviour
 
     private void ClampTravel()
     {
-        //take the car attach point y axis and thats your start
-        //then that point + travel is point under
+        //calculate the highest point that the suspension can go and the lowest it can reach
+        highestPoint = new Vector3(wheelAttachPoint.position.x, carAttachPoint.position.y, wheelAttachPoint.position.z);
+        lowestPoint = highestPoint + new Vector3(0, -rideHeight, 0);
+        
+        //clamp the y axis between those 2 points
+        clampedYAxis = Mathf.Clamp(tyre.transform.position.y, lowestPoint.y, highestPoint.y);
+        tyre.transform.position = new Vector3(tyre.transform.position.x, clampedYAxis, tyre.transform.position.z);
     }
     
     private void Suspension()
     {
+        //calculate the amount of travel that the spring has
+        float totalTravel = highestPoint.y - lowestPoint.y;
+        float currentTravel = clampedYAxis - lowestPoint.y;
+        float travelFactor = currentTravel / totalTravel;
         
+        //get the variables for calculating the force
+        float progressionFactor = progressionCurve.Evaluate(travelFactor);
+        Vector3 tyreToCarLocalPosition = carRb.transform.InverseTransformPoint(tyre.transform.position);
+        float localVelocity = carRb.GetPointVelocity(tyreToCarLocalPosition).y;
+        
+        //calculating the amount of force the spring has
+        float force = (stiffness * travelFactor) - (localVelocity * -damper);
+        float totalForce = progressionFactor * stiffness;
     }
     
     #endregion
