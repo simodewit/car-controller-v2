@@ -10,7 +10,7 @@ public class Suspension : MonoBehaviour
     [Tooltip("The main rigidbody attached to the chassis")]
     [SerializeField] private Rigidbody carRb;
     [Tooltip("The script of the tyre that this suspension is attached to")]
-    [SerializeField] private Tyre tyre;
+    [SerializeField] private TyresV2 tyre;
 
     [Header("Spring values")]
     [Tooltip("The stiffness of the spring")]
@@ -98,19 +98,19 @@ public class Suspension : MonoBehaviour
 
         //calculate the force that should be applied to the car
         Vector3 wheelPlace = tyre.transform.TransformPoint(tyre.transform.localPosition);
-        float force = (distanceInSpring * spring * springProgression) - (carRb.GetPointVelocity(wheelPlace).y * -damper);
+        float force = (distanceInSpring * spring * springProgression) - (carRb.GetPointVelocity(wheelPlace).y * damper);
 
         //calculate the place where the force towards the car should be added
         Vector3 offset = new Vector3(0, springTravel / 2, 0);
         Vector3 forcePoint = carRb.transform.TransformPoint(springTargetPos.localPosition + offset);
 
         //calculate force to hold the car upwards
-        Vector3 carForce = -carRb.transform.up * force;
-        //springForce = force;
+        Vector3 carForce = carRb.transform.up * force;
+        springForce = force;
 
         //calculate force to keep the wheel to the target position
         float weightFactor = tyreRb.mass / carRb.mass;
-        Vector3 wheelForce = tyre.transform.up * force * weightFactor;
+        Vector3 wheelForce = force * weightFactor * -tyre.transform.up;
 
         //apply the forces
         if (tyre.isGrounded)
