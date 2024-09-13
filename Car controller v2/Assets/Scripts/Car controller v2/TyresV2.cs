@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class TyresV2 : MonoBehaviour
 {
     #region variables
@@ -12,6 +13,8 @@ public class TyresV2 : MonoBehaviour
     [Tooltip("Check if the tyre is touching the ground or not")]
     [HideInInspector] public bool isGrounded = false;
 
+    private List<GameObject> collisions = new List<GameObject>();
+    
     #endregion
     
     #region start
@@ -20,6 +23,11 @@ public class TyresV2 : MonoBehaviour
     {
         radius = GetComponent<Renderer>().bounds.size.y / 2;
     }
+
+    private void Update()
+    {
+        CheckCollision();
+    }
     
     #endregion
     
@@ -27,12 +35,24 @@ public class TyresV2 : MonoBehaviour
 
     private void OnCollisionEnter(Collision other)
     {
-        isGrounded = true;
+        collisions.Add(other.gameObject);
     }
 
     private void OnCollisionExit(Collision other)
     {
-        isGrounded = false;
+        collisions.Remove(other.gameObject);
+    }
+
+    private void CheckCollision()
+    {
+        if (collisions.Count != 0)
+        {
+            isGrounded = true;
+        }
+        else
+        {
+            isGrounded = false;
+        }
     }
 
     #endregion
