@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class TyresV2 : MonoBehaviour
+public class TyreV2 : MonoBehaviour
 {
     #region variables
     

@@ -10,7 +10,7 @@ public class Suspension : MonoBehaviour
     [Tooltip("The main rigidbody attached to the chassis")]
     [SerializeField] private Rigidbody carRb;
     [Tooltip("The script of the tyre that this suspension is attached to")]
-    [SerializeField] private TyresV2 tyre;
+    [SerializeField] private TyreV2 tyre;
 
     [Header("Spring values")]
     [Tooltip("The stiffness of the spring")]
