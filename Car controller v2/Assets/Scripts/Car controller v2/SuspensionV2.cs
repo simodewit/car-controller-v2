@@ -28,19 +28,22 @@ public class SuspensionV2 : MonoBehaviour
     [Tooltip("A curve where you can change the behaviour of the spring"), Curve(0f, 0f, 1f, 1f, true)]
     [SerializeField] private AnimationCurve progressionCurve;
 
-    [HideInInspector] public float currentTravel;
+    [Tooltip("The place in the travel where the suspension is")]
+    [HideInInspector] public float currentTravel = 0;
+    [Tooltip("The downward force from the suspension onto the tyre")]
+    [HideInInspector] public float downwardForce = 0;
     
-    private float clampedYAxis;
-    private float lastTimestepTravel;
-    private float travelFactor;
+    private float clampedYAxis = 0;
+    private float lastTimestepTravel = 0;
+    private float travelFactor = 0;
     private Rigidbody tyreRb;
-    private Vector3 highestPoint;
-    private Vector3 lowestPoint;
-    private Vector3 tyreStartPosition;
-    private Vector3 contactPoint;
+    private Vector3 highestPoint = Vector3.zero;
+    private Vector3 lowestPoint = Vector3.zero;
+    private Vector3 tyreStartPosition = Vector3.zero;
+    private Vector3 contactPoint = Vector3.zero;
 
-    private Vector3 gizmosDebugVector3;
-    private Vector3 gizmosDebugVector3_2;
+    private Vector3 gizmosDebugVector3 = Vector3.zero;
+    private Vector3 gizmosDebugVector3_2 = Vector3.zero;
     
     #endregion
     
@@ -129,6 +132,8 @@ public class SuspensionV2 : MonoBehaviour
         Vector3 tyreForce = -tyreRb.transform.up * force;
         tyreRb.AddForce(tyreForce);
 
+        downwardForce = tyreForce.y;
+        
         gizmosDebugVector3_2 = tyreForce;
     }
     

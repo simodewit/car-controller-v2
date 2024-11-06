@@ -12,6 +12,10 @@ public class TyreV2 : MonoBehaviour
     [Header("Refrences")] 
     [Tooltip("The rigidbody of the chassis")]
     [SerializeField] private Rigidbody carRb;
+    [Tooltip("The suspension this tyre is attached to")]
+    [SerializeField] private SuspensionV2 suspension;
+    [Tooltip("The clutch script")]
+    [SerializeField] private ClutchV2 clutch;
     
     [Header("Longitudinal grip")]
     [Tooltip("The amount at the end of the Grip Curve")]
@@ -27,21 +31,26 @@ public class TyreV2 : MonoBehaviour
     [Tooltip("Here you can give the tyre extra grip outside of the simulated grip (can be buggy)"), Range(0, 5)]
     [SerializeField] private float latGripBending = 1;
     
+    [Header("Resistance")]
+    [SerializeField] private float rollingCoefficient = 0.02f;
+    
     [Tooltip("Check how thick the tyre is")]
-    [HideInInspector] public float radius;
+    [HideInInspector] public float radius = 0;
     [Tooltip("Check if the tyre is touching the ground or not")]
     [HideInInspector] public bool isGrounded = false;
     [Tooltip("add torque in newtons to this variable to accelerate with this tyre")]
-    [HideInInspector] public float forwardForce;
+    [HideInInspector] public float forwardForce = 0;
     [Tooltip("The amount of rotations per minute this tyre rotates")]
-    [HideInInspector] public float rpm;
+    [HideInInspector] public float rpm = 0;
     [Tooltip("The amount of force the tyre gets from the engine")]
-    [HideInInspector] public float accelerationForce;
+    [HideInInspector] public float accelerationForce = 0;
+    [Tooltip("The amount of resistance that this tyre produces in nm")]
+    [HideInInspector] public float resistance = 0;
 
     private List<GameObject> collisions = new List<GameObject>();
-    private float lostLongTorque;
-    private float lostLatTorque;
-    private float latMaximumGrip;
+    private float lostLongTorque = 0;
+    private float lostLatTorque = 0;
+    private float latMaximumGrip = 0;
     
     #endregion
     
@@ -63,13 +72,14 @@ public class TyreV2 : MonoBehaviour
     
     private void FixedUpdate()
     {
-        Grip();
         RPM();
+        Resistance();
+        Grip();
     }
     
     #endregion
     
-    #region calculate rpm
+    #region rpm
 
     private void RPM()
     {
@@ -88,6 +98,16 @@ public class TyreV2 : MonoBehaviour
 
         //add the rpm's
         rpm = currentRPM;
+    }
+
+    #endregion
+
+    #region resistance
+
+    private void Resistance()
+    {
+        float resistanceForce = rollingCoefficient * suspension.downwardForce;
+        resistance = resistanceForce * radius;
     }
 
     #endregion
@@ -130,6 +150,18 @@ public class TyreV2 : MonoBehaviour
         float longPercentage = lostLongTorque / longMaximumGrip;
         float latPercentage = lostLatTorque / latMaximumGrip;
         float limitGrip = 1 - (longPercentage + latPercentage) / 2;
+        
+        //calculate the needed resistance
+        float totalResistance = resistance * clutch.contact;
+        
+        if (longGrip >= 0)
+        {
+            longGrip -= totalResistance;
+        }
+        else
+        {
+            longGrip += totalResistance;
+        }
         
         //add them together into one vector3 and calculate the contact patch location
         Vector3 forceVector = (longGrip * carRb.transform.forward + latGrip * -transform.right) * limitGrip;

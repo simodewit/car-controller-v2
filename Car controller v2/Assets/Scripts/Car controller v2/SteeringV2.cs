@@ -37,7 +37,7 @@ public class SteeringV2 : MonoBehaviour
         foreach (var tyre in tyreInfo)
         {
             //create a Vector3 with the base offset
-            Vector3 clampedRotation = tyre.localStartRotation + new Vector3(tyre.rotationOffset.x, 0, tyre.rotationOffset.y);
+            Vector3 clampedRotation = tyre.localStartRotation + new Vector3(0, tyre.rotationOffset.x, tyre.rotationOffset.y);
             
             //check if the tyre has the ability to steer
             if (tyre.shouldSteer)
@@ -47,7 +47,7 @@ public class SteeringV2 : MonoBehaviour
                 correctedInput *= Mathf.Sign(steeringAxis);
                 
                 //correct the base Vector3 with the steering
-                clampedRotation.x += correctedInput * tyre.turnAmount;
+                clampedRotation.y += correctedInput * tyre.turnAmount;
             }
             
             //apply the rotations

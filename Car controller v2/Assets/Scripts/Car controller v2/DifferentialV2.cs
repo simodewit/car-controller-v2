@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class DifferentialV2 : MonoBehaviour
 {
@@ -12,12 +13,15 @@ public class DifferentialV2 : MonoBehaviour
     [Tooltip("The right wheel")]
     [SerializeField] private TyreV2 rightWheel;
     [Tooltip("The gearbox")]
-    [SerializeField] private GearboxV2 gearbox;
+    [SerializeField] private DriveShaftV2 driveShaft;
     
-    [Tooltip("The ratio of the final gear in the differential")]
+    [Tooltip("The ratio of the final gear in the differential"), Range(0, 5)]
     [SerializeField] private float finalGearRatio = 3;
     [Tooltip("How much of the differential can be opened or closed"), Range(0, 100)]
     [SerializeField] private float diffLock = 50;
+
+    [Tooltip("The resistance of the tyres after the differential final gear")]
+    [HideInInspector] public float resistance = 0;
     
     private List<DifferentialV2> allDiffs = new List<DifferentialV2>();
     
@@ -36,6 +40,7 @@ public class DifferentialV2 : MonoBehaviour
 
     private void FixedUpdate()
     {
+        Reverse();
         Diff();
     }
     
@@ -46,12 +51,12 @@ public class DifferentialV2 : MonoBehaviour
     private void Diff()
     {
         //calculate the torque after the final gear
-        float entryTorque = gearbox.outputTorque * finalGearRatio;
+        float entryTorque = driveShaft.outputTorque * finalGearRatio;
         
         //calculate the percentages
-        float average = (leftWheel.rpm + rightWheel.rpm) / 2;
-        float leftFactor = leftWheel.rpm / average;
-        float rightFactor = rightWheel.rpm / average;
+        float diffRpm = driveShaft.rpm * finalGearRatio;
+        float leftFactor = leftWheel.rpm / diffRpm;
+        float rightFactor = rightWheel.rpm / diffRpm;
 
         //calculate the min and max for the clamp
         float min = (100 - diffLock / 2) / 100;
@@ -66,5 +71,14 @@ public class DifferentialV2 : MonoBehaviour
         rightWheel.accelerationForce = entryTorque / 2 * rightFactor / allDiffs.Count;
     }
     
+    #endregion
+
+    #region reverse
+
+    private void Reverse()
+    {
+        resistance = (leftWheel.resistance + rightWheel.resistance) / finalGearRatio;
+    }
+
     #endregion
 }
